@@ -1,16 +1,30 @@
-# This is a sample Python script.
+# Read the standby status of HDDs using hdparm.
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import subprocess
+import sys
 
 
-# Press the green button in the gutter to run the script.
+def get_drive_status(drive_path):
+    result = subprocess.run(["hdparm", "-C", drive_path], capture_output=True)
+    if result.returncode != 0:
+        print(f'Status: {result.returncode}, stdout: {result.stdout}, stderr: {result.stderr}')
+        sys.exit(1)
+    stdout = result.stdout.decode("utf-8")
+    if "active/idle" in stdout:
+        return 1
+    if "standby" in stdout:
+        return 0
+    print(f'Unexpected stdout: {stdout}')
+    sys.exit(1)
+
+
+def check_arguments():
+    if len(sys.argv) != 2:
+        print("Usage: python3 main.py </dev/disk>")
+        sys.exit(1)
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    check_arguments()
+    returnCode = get_drive_status(sys.argv[1])
+    sys.exit(returnCode)
