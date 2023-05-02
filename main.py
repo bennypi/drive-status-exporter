@@ -22,16 +22,16 @@ def get_drive_status(drive_path):
 
 
 def check_arguments():
-    if len(sys.argv) != 2:
-        print("Usage: python3 main.py </dev/disk>")
+    if len(sys.argv) < 2:
+        print("Usage: python3 main.py </dev/disk1> </dev/disk2> ...")
         sys.exit(1)
 
 
 if __name__ == '__main__':
     check_arguments()
     start_http_server(8000)
-    gauge = Gauge('drive_status', 'standby status of the HDD. 0 means standby, 1 means active.')
+    gauge = Gauge('drive_status', 'standby status of the HDD. 0 means standby, 1 means active.', ['disk'])
     while True:
-        returnCode = get_drive_status(sys.argv[1])
-        gauge.set(returnCode)
+        for i in range(1, len(sys.argv)):
+            gauge.labels(sys.argv[i]).set(get_drive_status(sys.argv[i]))
         time.sleep(10)
