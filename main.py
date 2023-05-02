@@ -1,7 +1,10 @@
 # Read the standby status of HDDs using hdparm.
 
+from prometheus_client import start_http_server, Gauge
+
 import subprocess
 import sys
+import time
 
 
 def get_drive_status(drive_path):
@@ -26,5 +29,9 @@ def check_arguments():
 
 if __name__ == '__main__':
     check_arguments()
-    returnCode = get_drive_status(sys.argv[1])
-    sys.exit(returnCode)
+    start_http_server(8000)
+    gauge = Gauge('drive_status', 'standby status of the HDD. 0 means standby, 1 means active.')
+    while True:
+        returnCode = get_drive_status(sys.argv[1])
+        gauge.set(returnCode)
+        time.sleep(10)
